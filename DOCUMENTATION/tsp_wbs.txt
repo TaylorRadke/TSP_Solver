@@ -1,0 +1,55 @@
+TSP Solver Project WBS
+    Part A - Solver and Report
+        Project Plan
+            Outline of project
+            Scope
+            Work Breakdown
+                Part A
+                    Preparing Project Plan
+                    Design and Implementation of
+                        Solver
+                        Report
+                Part B
+                Part C
+            Activity Definition
+            Gantt Chart
+        Solver
+            File Input
+                provide a file called TSP.py, takes 2 commandline args: .tsp file to load, maximum seconds allowed to solve
+            Solver
+                Attempt to find the shortest path between the cities
+                    should regularly check time to stop searching once max time reacched
+                    Tour length is total distance
+                Output to std output(screen)
+                    problem name
+                    shortest found tour length
+                    order of cities visited
+                    Terminate with -1
+        Report
+            Describe how solver works
+            Detail a list of results
+    Part B - Database
+        Determine what data needs to be stored
+        Produce entity relationship diagram
+        Create Database
+        Create queries, scripts for
+            Adding a problem to the database from a .tsp problem
+            Reading a problem file from the database into solver
+            Storing solution into database
+        Modify program to run from database with 3 modes of operation
+                Adding new problem to database
+                Solving a problem
+                Getting the best known solution and displaying it
+    Part C - GUI
+        Prepare Wireframe
+        Implement interface into python
+        Modify database schema to interact with GUI
+            Upload a new .tsp problem to the database
+            Load a problem from the database
+            Solve loaded problem
+            Save solution to database
+            Load solution from database, visiualise(scaleable)
+        
+
+
+            
