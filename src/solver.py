@@ -1,15 +1,13 @@
 import pickle
 import math
-from lib.tsp_algo import eu_dist,greedy
+from lib.tsp_algo import greedy
 
 tsp_node_obj = pickle.load(open("objects/tsp_node_obj.p",'rb'))
-tsp_nodes_list = tsp_node_obj.get_nodes()
+tsp_node_list = tsp_node_obj.get_nodes()
 
-tour_length_list = []
-total_route_length = 0
+newlist = greedy(tsp_node_list)
 
-greedy(tsp_nodes_list)
+print(newlist[0])
 
-
-# for i in tour_length_list:
-#     print(i)
+for node in newlist[1]:
+    print(node)
