@@ -11,7 +11,7 @@ To run this program:
 2. Once installed navigate to the src directory
 3. Using a python interpreter run the following command.
 
-python TSP.py <file name> <time allowed to solve>
+python TSP.py file-name time-allowed
 
 - file names can be found in tsp_files, you must include the file extension
 - time allowed, limits the length of the program to solve with that amout of seconds
