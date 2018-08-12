@@ -1,9 +1,8 @@
 import math
 
-
 def eu_dist(node1,node2):
-    xd = abs(int(node1[1]) - int(node2[1]))
-    yd = abs(int(node1[2]) - int(node2[2]))
+    xd = abs(float(node1[1]) - float(node2[1]))
+    yd = abs(float(node1[2]) - float(node2[2]))
     return math.sqrt(xd**2 + yd ** 2)
 
 
@@ -29,18 +28,19 @@ def greedy(node_list):
     """
     tour_list = []
     tour_length = 0
-    start_point = node_list[0]
+    copy_list = [x for x in node_list]
+    start_point = copy_list[0]
 
-    while(len(node_list)-1 > 0 ):
-        tour_list.append(node_list[0])
-        next_node = findNextShortest(node_list)
+    while(len(copy_list)-1 > 0 ):
+        tour_list.append(copy_list[0])
+        next_node = findNextShortest(copy_list)
         tour_length += next_node[1]
         next_node_index = next_node[0] - 1
-        node_list[0] = node_list[next_node_index]
-        node_list.pop(next_node_index)
+        copy_list[0] = copy_list[next_node_index]
+        copy_list.pop(next_node_index)
     
-    node_list.append(start_point)
-    tour_length += eu_dist(node_list[0],node_list[1])
-    tour_list.append(node_list[0])
+    copy_list.append(start_point)
+    tour_length += eu_dist(copy_list[0],copy_list[1])
+    tour_list.append(copy_list[0])
     tour_list.append(-1)
     return (tour_length,tour_list)
