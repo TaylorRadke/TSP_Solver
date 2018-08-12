@@ -15,12 +15,12 @@ def create_node_object(tsp_node_file):
         ewt = tsp_file_attributes[4]
     )
 
-    for node in tsp_nodes[6:-1]:
-        node_list = list(filter(None,node.strip(" ").replace("\n","").split(" ")))
+    for node in tsp_nodes[6:-2]:
+        node_list = list(filter(None,node.strip().replace("\n","").split(" ")))
         node_object.add_node(
-            node_list[0],
-            node_list[1],
-            node_list[2]
+            int(node_list[0]),
+            float(node_list[1]),
+            float(node_list[2])
         )
 
     return node_object
