@@ -1,5 +1,4 @@
 class TSP_NODE(object):
-    
     def __init__(self,**kwargs):
         self.__name = kwargs.get('name')
         self.__comments = kwargs.get('comments')

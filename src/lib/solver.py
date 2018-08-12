@@ -2,11 +2,15 @@ import math
 from time import time
 
 def euclidean_distance(node1,node2):
+    """Finds the euclidean distance between two nodes"""
+    
     xd = abs(node1[1] - node2[1])
     yd = abs(node1[2] - node2[2])
     return math.sqrt(xd**2 + yd ** 2)
 
 def find_next_shortest(node_list):
+    """Finds the next closest node"""
+
     shortest_route = euclidean_distance(node_list[0],node_list[1])
     index_shortest_route = 1
 
@@ -19,8 +23,10 @@ def find_next_shortest(node_list):
     yield index_shortest_route,shortest_route
 
 
+
 def greedy(node_list,allowed_time):
     """
+    How it works\n
     (1) Add 0th element in node_list to tour_list as it is the current node
     (2) Get next closest node and add its distance to tour_length
     (3) set next node as 0th element in node_list so that it is now the current node
@@ -30,7 +36,7 @@ def greedy(node_list,allowed_time):
     (1) find the length from current node to start node and add the route distance to tour_length
     (2) Add current node to tour_list
     """
-    
+
     tour_list = []
     tour_length = 0
     start_point = node_list[0]
