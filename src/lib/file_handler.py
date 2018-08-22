@@ -1,4 +1,4 @@
-from tsp_node_class import TSP_NODE
+from .tsp_node_class import TSP_NODE
     
 def create_node_object(tsp_node_file):
 
