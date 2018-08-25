@@ -1,5 +1,6 @@
 import re
 
+
 def reader(tsp_node_file):
 
     tsp_nodes = open(tsp_node_file,"r")
@@ -10,27 +11,29 @@ def reader(tsp_node_file):
         "type":None,
         "dimension":None,
         "edge-weight-type":None,
+        "distance":None,
         "tour":[]
     }
     for line in tsp_nodes.readlines():
-        a = re.match("(\w+)\s*:*\s*([\w\s]+)",line)
-        b = a.group(1)
-        c = a.group(2)
+        a = re.match("(\w+)\s*:*\s*([\w]*)",line)
+        attr_label = a.group(1)
+        attr_value = a.group(2)
 
-        if b == "NODE_COORD_SECTION":
+        if attr_label == "NODE_COORD_SECTION":
             break
-        elif b == "NAME":
-            node_reader["name"] = c
-        elif b == "COMMENT":
-            node_reader["comments"] = c
-        elif b == "TYPE":
-            node_reader["type"] = c
-        elif b == "DIMENSION":
-            node_reader["dimension"] = c
-        elif b == "EDGE_WEIGHT_TYPE":
-            node_reader["edge-weight-type"] = c
+        elif attr_label == "NAME":
+            node_reader["name"] = attr_value + ".tsp"
+        elif attr_label == "COMMENT":
+            node_reader["comments"] = attr_value
+        elif attr_label == "TYPE":
+            node_reader["type"] = attr_value
+        elif attr_label == "DIMENSION":
+            node_reader["dimension"] = attr_value
+        elif attr_label == "EDGE_WEIGHT_TYPE":
+            node_reader["edge-weight-type"] = attr_value
         current_line += 1
     tsp_nodes.close()
+
     with open(tsp_node_file,"r") as tsp_nodes:
         for node in tsp_nodes.readlines()[current_line:-1]:
             node_list = list(filter(None,node.strip().replace("\n","").split(" ")))

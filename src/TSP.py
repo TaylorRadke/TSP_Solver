@@ -1,26 +1,16 @@
 import sys
 import os.path as path
-from lib.reader import reader
-from lib.solver import greedy2opt
+from reader import reader
+from solver import greedy2opt
+import matplotlib.pyplot as plt
+from output import output
 
 
-def main(tsp_file_name,tsp_allowed_time): 
-
-    tsp_allowed_time = tsp_allowed_time
-
-    tsp_file_path = path.join('tsp_files',tsp_file_name)
-    tsp_node_obj = reader(tsp_file_path)
-
-    result = greedy2opt(tsp_node_obj["tour"], tsp_allowed_time)
-
-    print(tsp_file_name)
-    print("Shortest Found Tour Length: " + str(result[0]))
-    print("Tour: ")
-    for node in result[1]:
-         print(node)
-    print(-1)
+def main(file_name,allowed_time):
+    tsp_node_dict = reader(path.join(path.curdir,'tsp_files',file_name))
+    greedy2opt(tsp_node_dict, allowed_time)
+    output(tsp_node_dict)
 
 
 if __name__ == "__main__":
-    # main(sys.argv[1],sys.argv[2])
-    main("berlin52.tsp",300)
+    main(sys.argv[1],sys.argv[2])
