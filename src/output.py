@@ -1,5 +1,3 @@
-
-
 def output(tsp_node_dict):
     print(tsp_node_dict["name"])
     print("Shortest Found Tour Length: " + str(tsp_node_dict["distance"]))
