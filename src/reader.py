@@ -34,6 +34,6 @@ def reader(problem_file,problem_name,db_conn):
                  cur.execute(sql_add_node.format(problem_name,node,x,y))
                  db_conn.commit()
             except mysql.connector.errors.DataError as e:
-                raise "Something went wrong " + e
+                raise e
 
     db_conn.close()

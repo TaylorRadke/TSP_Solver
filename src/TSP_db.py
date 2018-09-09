@@ -1,7 +1,7 @@
 import sys
 import os.path as path
 from reader import reader
-from solver import greedy2opt
+from solver import solve
 from output import output
 import mysql.connector
 import re
@@ -18,19 +18,6 @@ def connection():
         print(e)
     return db
 
-def check_if_exists_in_db(problem,operation,db_conn):
- 
-    if (operation.upper() == "ADD"):
-        cur = db_conn.cursor()
-        try:
-            cur.execute("Select * FROM Problem where Name = '{}';".format(problem))
-        except mysql.connector.Error as e:
-            raise e
-        # except mysql.connector.DataError as e:
-        #     raise e
-
-        if (cur.fetchone() != None):
-            return 
 
 def main(args):
     # Connect to the database
@@ -51,17 +38,19 @@ def main(args):
             raise e
 
     # Check if the problem provided matches the file for the problem
-    if (operation == "ADD"):
+    if operation.upper() == "ADD":
         problem_file = re.match("([\w\d]*)",final).group()
         if (problem_file != problem):
             raise ValueError("Problem name does not match file name")
         else:
-            
-            reader(path.join(path.curdir,'..\\tsp_files',final),problem,db_conn)    
+            reader(path.join(path.curdir,'..\\tsp_files',final),problem,db_conn)  
 
-    # greedy2opt(tsp_node_dict, allowed_time)
-    # output(tsp_node_dict)
+    elif operation.upper() == "SOLVE":
+        solve(problem,db_conn,float(final))
 
+    elif operation.upper() == "Fetch":
+        pass
+    
 
 if __name__ == "__main__": 
     main(sys.argv)
