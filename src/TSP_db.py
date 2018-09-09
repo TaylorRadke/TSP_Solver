@@ -4,7 +4,6 @@ from reader import reader
 from solver import greedy2opt
 from output import output
 import mysql.connector
-import mysql.connector.errors as db_error
 import re
 
 def connection():
@@ -19,21 +18,37 @@ def connection():
         print(e)
     return db
 
+def check_if_exists_in_db(problem,operation,db_conn):
+ 
+    if (operation.upper() == "ADD"):
+        cur = db_conn.cursor()
+        try:
+            cur.execute("Select * FROM Problem where Name = '{}';".format(problem))
+        except mysql.connector.Error as e:
+            raise e
+        # except mysql.connector.DataError as e:
+        #     raise e
+
+        if (cur.fetchone() != None):
+            return 
+
 def main(args):
     # Connect to the database
     db_conn = connection()
 
-    # Get all values from commandline, check if there is missing arguments
+    # Get problem name and problem operation values from commandline
     try:
         problem = args[1]
         operation = args[2].upper()
-        if (operation == "ADD" or operation == "SOLVE"):
-            try:
-                final = args[3]
-            except IndexError as e:
-                print(e)
     except IndexError as e:
-        print(e)
+        raise e
+
+    # Get third value, file if ADD and time if SOLVE   
+    if (operation == "ADD" or operation == "SOLVE"):
+        try:
+            final = args[3]
+        except IndexError as e:
+            raise e
 
     # Check if the problem provided matches the file for the problem
     if (operation == "ADD"):
@@ -41,9 +56,8 @@ def main(args):
         if (problem_file != problem):
             raise ValueError("Problem name does not match file name")
         else:
-            reader(path.join(path.curdir,'..\\tsp_files',file_name),db_conn)
-
-    if (operation == "")          
+            
+            reader(path.join(path.curdir,'..\\tsp_files',final),problem,db_conn)    
 
     # greedy2opt(tsp_node_dict, allowed_time)
     # output(tsp_node_dict)
