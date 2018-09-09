@@ -48,8 +48,8 @@ def main(args):
     elif operation.upper() == "SOLVE":
         solve(problem,db_conn,float(final))
 
-    elif operation.upper() == "Fetch":
-        pass
+    elif operation.upper() == "FETCH":
+        output(problem,db_conn)
     
 
 if __name__ == "__main__": 
