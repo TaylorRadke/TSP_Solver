@@ -8,8 +8,11 @@ def reader(problem_file,problem_name,db_conn):
     cur = db_conn.cursor()
 
     #  Check if problem already exists
-
-    tsp_nodes = open(problem_file,"r")
+    try:
+        tsp_nodes = open(problem_file,"r")
+    except:
+        print(problem_name + ".tsp does not exist")
+        sys.exit(1)
 
     current_line = 1
     for  line in tsp_nodes.readlines():
@@ -40,12 +43,15 @@ def reader(problem_file,problem_name,db_conn):
                 node = node_list[0]
                 x = node_list[1]
                 y = node_list[2]
-
-                cur.execute(sql_add_node.format(problem_name,node,x,y))
-                db_conn.commit()
+                try:
+                    cur.execute(sql_add_node.format(problem_name,node,x,y))
+                except KeyboardInterrupt:
+                    print("Unexpected interrupt while adding nodes to database")
+                    sys.exit(1)
+                except mysql.connector.IntegrityError:
+                    pass
+            db_conn.commit()
             print(problem_name + " has been successfully added to the database")
 
         except mysql.connector.IntegrityError:
             print("Duplicate Entry: problem %s is already in the database" % problem_name)
-
-    db_conn.close()

@@ -48,3 +48,8 @@ sql_add_problem = """
     INSERT INTO Problems (Name,Dimension)
     Values ('{}',{}); 
     """
+
+sql_remove_problem = """
+    DELETE FROM Problems
+    WHERE Name = '{}';
+    """
