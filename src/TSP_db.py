@@ -8,6 +8,11 @@ import re
 
 
 def main(args):
+
+    #### Define Absolute path to directory containing TSP problem files
+    tsp_path = path.join("F:\\1810ICT_SoftwareDevelopmentProcesses\\tsp_solver\\tsp_files\\")
+
+
     # Connect to the database
     db_conn = connection()
 
@@ -36,15 +41,19 @@ def main(args):
             print("Value Error: Problem name does not match file name")
             sys.exit(1)
         else:
-            reader(path.join(path.curdir,'..\\tsp_files',final),problem,db_conn)  
+            reader(path.join(tsp_path,final),problem,db_conn)  
 
     elif operation.upper() == "SOLVE":
-        solve(problem,db_conn,float(final))
+        if not float(final) < 0:
+            solve(problem,db_conn,float(final))
+        else:
+            print("Solver time cannot be negative")
 
     elif operation.upper() == "FETCH":
         output(problem,db_conn)
 
 def connection():
+    """Connect to the database"""
     try:
         return mysql.connector.connect(
             host="mysql.ict.griffith.edu.au",

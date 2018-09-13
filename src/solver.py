@@ -68,7 +68,8 @@ def solve(problem_name,db_conn,allowed_time):
         tour = greedy(cur.fetchall())
         
     except:
-        print(problem_name + " does not exist in the database")
+        print("Error: " + problem_name + " does not exist in the database")
+        sys.exit(1)
 
     print("Solving " + problem_name + " within " + str(allowed_time) + " seconds")
 
@@ -86,8 +87,8 @@ def solve(problem_name,db_conn,allowed_time):
         best_distance = tour_distance(tour)
         if within_time():
             for i in range(1, len(tour)-2):
-                print("Elapsed Time: %.2f" % float(time() - start_time), flush=True, end="\r")
                 if within_time():
+                    print("Elapsed Time: %.2f" % float(time() - start_time), flush=True, end="\r")
                     for k in range(i+1,len(tour)):
                         new_tour = transpose(tour[:], i, k)
                         new_distance = tour_distance(new_tour)
