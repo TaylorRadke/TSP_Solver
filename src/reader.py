@@ -11,7 +11,7 @@ def reader(problem_file,problem_name,db_conn):
     try:
         tsp_nodes = open(problem_file,"r")
     except:
-        print(problem_name + ".tsp does not exist")
+        print(problem_file + " does not exist")
         sys.exit(1)
 
     current_line = 1
@@ -46,7 +46,7 @@ def reader(problem_file,problem_name,db_conn):
                 try:
                     cur.execute(sql_add_node.format(problem_name,node,x,y))
                 except KeyboardInterrupt:
-                    print("Unexpected interrupt while adding nodes to database")
+                    print("Unexpected interrupt: " + problem_name + " has not been added to database")
                     sys.exit(1)
                 except mysql.connector.IntegrityError:
                     pass
@@ -54,4 +54,4 @@ def reader(problem_file,problem_name,db_conn):
             print(problem_name + " has been successfully added to the database")
 
         except mysql.connector.IntegrityError:
-            print("Duplicate Entry: problem %s is already in the database" % problem_name)
+            print("Duplicate Entry: Problem %s already exists in the database" % problem_name)

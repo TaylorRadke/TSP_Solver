@@ -18,8 +18,7 @@ def output(problem_name,db_conn):
         j = 0
         print("Tour: ")
         for i in cur.fetchall():
-            print(j)
-            j += 1
+            print(i)
     except:
-        print("No solution for " + problem_name + " in the database")
+        print("No solution for " + problem_name + " exists in the database")
     

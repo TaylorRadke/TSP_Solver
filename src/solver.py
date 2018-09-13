@@ -3,6 +3,7 @@ from time import time
 import re
 from queries import *
 import sys
+import mysql.connector.errors
 
 def euclidean_distance(node1, node2):
     """Finds the euclidean distance between two nodes"""
@@ -65,9 +66,10 @@ def solve(problem_name,db_conn,allowed_time):
     try:
         cur.execute(sql_get_nodes % problem_name)
         tour = greedy(cur.fetchall())
+        
     except:
         print(problem_name + " does not exist in the database")
-        sys.exit(1)
+
     print("Solving " + problem_name + " within " + str(allowed_time) + " seconds")
 
     improved = True
@@ -92,31 +94,36 @@ def solve(problem_name,db_conn,allowed_time):
                             tour = new_tour
                             best_distance = new_distance
         return tour
+    try:
+        while improved and within_time():
+            s_tour = tour[:]
+            tour = opt2(tour[:])
+            if s_tour == tour:
+                improved = False
 
-    while improved and within_time():
-        s_tour = tour[:]
-        tour = opt2(tour[:])
-        if s_tour == tour:
-            improved = False
-    print("Solved " + problem_name + " in " + str(time()-start_time) + " seconds")
-    print("Adding solution for " + problem_name +" to database")
+        print("Solved " + problem_name + " in %.2f seconds" % (time()-start_time))
+        print("Adding " + problem_name +" solution to database")
 
-    cur.execute(sql_add_solution.format(problem_name,tour_distance(tour),allowed_time))
-    db_conn.commit()
-    print("Adding nodes for shortest tour to database")
+        cur.execute(sql_add_solution.format(problem_name,tour_distance(tour),allowed_time))
 
-    for i in range(0,len(tour)-1):
-        cur.execute(sql_add_solution_tour.format(
-            name = problem_name,
-            id = tour[i][0],
-            runningtime = allowed_time,
-            solve_order_id = i+1,
-            x = tour[i][1],
-            y = tour[i][2]
-        ))
+        for i in range(0,len(tour)-1):
+            cur.execute(sql_add_solution_tour.format(
+                name = problem_name,
+                id = tour[i][0],
+                runningtime = allowed_time,
+                solve_order_id = i+1,
+                x = tour[i][1],
+                y = tour[i][2]
+            ))
         db_conn.commit()
+        print("Completed")
 
-    print("Completed")
+    except KeyboardInterrupt:
+        print("Unexpected keyboard interrupt while adding solution to database")
+        sys.exit(1)
+    except mysql.connector.IntegrityError:
+        print("Duplicate Error: Solution for {} with running time {} already exists in database".format(problem_name,allowed_time))
+        sys.exit(1)
 
 
 

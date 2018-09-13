@@ -33,7 +33,8 @@ def main(args):
     if operation == "ADD":
         problem_file = re.match("([\w\d]*)",final).group()
         if (problem_file != problem):
-            raise ValueError("Problem name does not match file name")
+            print("Value Error: Problem name does not match file name")
+            sys.exit(1)
         else:
             reader(path.join(path.curdir,'..\\tsp_files',final),problem,db_conn)  
 
