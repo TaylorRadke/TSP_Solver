@@ -21,11 +21,11 @@ CREATE TABLE Nodes (
 );
 
 CREATE TABLE Solutions (
-    Problem_Name VARCHAR (32),
+    Name VARCHAR (32),
     TourLength float(2),
     Algorithm VARCHAR(32),
     RunningTime INTEGER(11),
-    Primary Key(Problem_Name,RunningTime)
+    Primary Key(Name,RunningTime)
 );
 
 CREATE TABLE Solution_Nodes (

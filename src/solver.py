@@ -1,6 +1,8 @@
 import math
 from time import time
 import re
+from queries import *
+import sys
 
 def euclidean_distance(node1, node2):
     """Finds the euclidean distance between two nodes"""
@@ -60,14 +62,13 @@ def transpose(tour,i,k):
 
 def solve(problem_name,db_conn,allowed_time):
     cur = db_conn.cursor()
-
-    sql_get_nodes = """
-    SELECT ID,x,y from Nodes where Name = '%s';
-    """ 
-
-    cur.execute(sql_get_nodes % problem_name)
-
-    tour = greedy(cur.fetchall())
+    try:
+        cur.execute(sql_get_nodes % problem_name)
+        tour = greedy(cur.fetchall())
+    except:
+        print(problem_name + " does not exist in the database")
+        sys.exit(1)
+    print("Solving " + problem_name + " within " + str(allowed_time) + " seconds")
 
     improved = True
     tour.append(tour[0])
@@ -97,20 +98,13 @@ def solve(problem_name,db_conn,allowed_time):
         tour = opt2(tour[:])
         if s_tour == tour:
             improved = False
-
-    sql_add_solution = """
-    INSERT INTO Solutions (Problem_Name,TourLength,Algorithm,RunningTime)
-    Values ('{}',{},'Greedy 2-Opt',{});
-    """
+    print("Solved " + problem_name + " in " + str(time()-start_time) + " seconds")
+    print("Adding solution for " + problem_name +" to database")
 
     cur.execute(sql_add_solution.format(problem_name,tour_distance(tour),allowed_time))
     db_conn.commit()
+    print("Adding nodes for shortest tour to database")
 
-    sql_add_solution_tour = """
-    Insert into Solution_Nodes (Name,ID,RunningTime,Solve_Order_ID,x,y)
-    Values ('{name}',{id},{runningtime},{solve_order_id},{x},{y});
-    """
-    
     for i in range(0,len(tour)-1):
         cur.execute(sql_add_solution_tour.format(
             name = problem_name,
@@ -121,7 +115,8 @@ def solve(problem_name,db_conn,allowed_time):
             y = tour[i][2]
         ))
         db_conn.commit()
-    
+
+    print("Completed")
 
 
 
