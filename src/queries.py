@@ -14,6 +14,7 @@ sql_get_nodes = """
     SELECT ID,x,y from Nodes
     where Name = '%s';
     """ 
+
 sql_add_node = """
     INSERT INTO Nodes (Name,ID,x,y)
     Values ('{}',{},{},{});
@@ -38,18 +39,8 @@ sql_fetch_best = """
     Where Name = '{}'
     AND RunningTime = {};
     """
-sql_get_problems = """
-    SELECT Name
-    FROM Problems
-    WHERE Name = '{}';
-    """
 
 sql_add_problem = """
     INSERT INTO Problems (Name,Dimension)
     Values ('{}',{}); 
-    """
-
-sql_remove_problem = """
-    DELETE FROM Problems
-    WHERE Name = '{}';
     """

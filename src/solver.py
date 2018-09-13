@@ -86,6 +86,7 @@ def solve(problem_name,db_conn,allowed_time):
         best_distance = tour_distance(tour)
         if within_time():
             for i in range(1, len(tour)-2):
+                print("Elapsed Time: %.2f" % float(time() - start_time), flush=True, end="\r")
                 if within_time():
                     for k in range(i+1,len(tour)):
                         new_tour = transpose(tour[:], i, k)
@@ -101,7 +102,6 @@ def solve(problem_name,db_conn,allowed_time):
             if s_tour == tour:
                 improved = False
 
-        print("Solved " + problem_name + " in %.2f seconds" % (time()-start_time))
         print("Adding " + problem_name +" solution to database")
 
         cur.execute(sql_add_solution.format(problem_name,tour_distance(tour),allowed_time))
