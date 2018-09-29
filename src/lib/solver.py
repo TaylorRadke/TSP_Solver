@@ -1,8 +1,8 @@
 import math
-from time import time
-import re
-from queries import *
 import sys
+sys.path.append("..")
+from time import time
+from lib.queries import *
 import mysql.connector.errors
 
 def euclidean_distance(node1, node2):
@@ -61,22 +61,15 @@ def transpose(tour,i,k):
     return new_tour
 
 
-def solve(problem_name,db_conn,allowed_time):
-    cur = db_conn.cursor()
-    try:
-        cur.execute(sql_get_nodes % problem_name)
-        tour = greedy(cur.fetchall())
-        
-    except:
-        print("Error: " + problem_name + " does not exist in the database")
-        sys.exit(1)
-
-    print("Solving " + problem_name + " within " + str(allowed_time) + " seconds")
+def solve(problem_name,allowed_time,db):
+    tour = db.query(sql_get_cities.format(name = problem_name))
+    allowed_time = 1
+    
+    tour = greedy(tour)
 
     improved = True
     tour.append(tour[0])
     start_time = time()
-
     def within_time():
         if time() - start_time <= allowed_time:
             return True
@@ -88,7 +81,6 @@ def solve(problem_name,db_conn,allowed_time):
         if within_time():
             for i in range(1, len(tour)-2):
                 if within_time():
-                    print("Elapsed Time: %.2f" % float(time() - start_time), flush=True, end="\r")
                     for k in range(i+1,len(tour)):
                         new_tour = transpose(tour[:], i, k)
                         new_distance = tour_distance(new_tour)
@@ -96,35 +88,22 @@ def solve(problem_name,db_conn,allowed_time):
                             tour = new_tour
                             best_distance = new_distance
         return tour
-    try:
-        while improved and within_time():
-            s_tour = tour[:]
-            tour = opt2(tour[:])
-            if s_tour == tour:
-                improved = False
 
-        print("Adding " + problem_name +" solution to database")
+    while improved and within_time():
+        s_tour = tour[:]
+        tour = opt2(tour[:])
+        if s_tour == tour:
+            improved = False
 
-        cur.execute(sql_add_solution.format(problem_name,tour_distance(tour),allowed_time))
+    tourStr = ""
+    for node in tour[:-1]:
+        tourStr += str(node[0]) + ","
+    tourStr = tourStr[:-1]
 
-        for i in range(0,len(tour)-1):
-            cur.execute(sql_add_solution_tour.format(
-                name = problem_name,
-                id = tour[i][0],
-                runningtime = allowed_time,
-                solve_order_id = i+1,
-                x = tour[i][1],
-                y = tour[i][2]
-            ))
-        db_conn.commit()
-        print("Completed")
-
-    except KeyboardInterrupt:
-        print("Unexpected keyboard interrupt while adding solution to database")
-        sys.exit(1)
-    except mysql.connector.IntegrityError:
-        print("Duplicate Error: Solution for {} with running time {} already exists in database".format(problem_name,allowed_time))
-        sys.exit(1)
-
-
-
+    db.insert(sql_add_solution.format(
+        name = problem_name,
+        length = tour_distance(tour),
+        runningtime = allowed_time,
+        tour = tourStr
+    ))
+    db.save()

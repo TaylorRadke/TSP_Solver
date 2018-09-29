@@ -1,39 +1,38 @@
 use s5094922db;
-SET FOREIGN_KEY_CHECKS = 0;
-Drop table IF EXISTS Nodes;
-Drop table IF EXISTS Solutions;
-Drop table IF EXISTS Problems;
-Drop table IF EXISTS Solution_Nodes;
-SET FOREIGN_KEY_CHECKS = 1;
-
-CREATE TABLE Problems (
-    Name VARCHAR(32),
-    Dimension INTEGER(11),
-    Primary Key (Name)
+--
+-- Table structure for table 'Problem'
+--
+CREATE TABLE IF NOT EXISTS Problem (
+  Name varchar(32) NOT NULL,
+  Size int(11) NOT NULL,
+  Comment varchar(255) DEFAULT NULL,
+  CONSTRAINT PPK PRIMARY KEY (Name)
 );
 
-CREATE TABLE Nodes (
-    Name VARCHAR(32),
-    ID INTEGER,
-    x float(3),
-    y float(3),
-    Primary Key (Name,ID)
-);
+--
+-- Table structure for table 'Cities'
+--
+CREATE TABLE IF NOT EXISTS Cities (
+  Name varchar(32) NOT NULL,
+  ID int(11) NOT NULL,
+  x double NOT NULL,
+  y double NOT NULL,
+  CONSTRAINT CPK PRIMARY KEY (Name, ID),
+  CONSTRAINT PName FOREIGN KEY (Name) REFERENCES Problem (Name) ON DELETE CASCADE
+); 
 
-CREATE TABLE Solutions (
-    Name VARCHAR (32),
-    TourLength float(2),
-    Algorithm VARCHAR(32),
-    RunningTime INTEGER(11),
-    Primary Key(Name,RunningTime)
-);
-
-CREATE TABLE Solution_Nodes (
-    Name VARCHAR(32),
-    ID INTEGER(11),
-    RunningTime INTEGER(11),
-    Solve_Order_Id INTEGER(11),
-    x float(3),
-    y float(3),
-    Primary Key (Name,ID,RunningTime)
+--
+-- Table structure for table 'Solution'
+--
+CREATE TABLE IF NOT EXISTS Solution (
+  SolutionID int(11) NOT NULL AUTO_INCREMENT,
+  ProblemName varchar(32) NOT NULL,
+  TourLength double NOT NULL,
+  Date date DEFAULT NULL,
+  Author varchar(32) DEFAULT NULL,
+  Algorithm varchar(32) DEFAULT NULL,
+  RunningTime int(11) DEFAULT NULL,
+  Tour mediumtext NOT NULL,
+  CONSTRAINT SPK PRIMARY KEY (SolutionID),
+  CONSTRAINT SolPName FOREIGN KEY (ProblemName) REFERENCES Problem (Name) ON DELETE CASCADE
 );
