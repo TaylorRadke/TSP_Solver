@@ -62,7 +62,7 @@ class Query(Database):
             comment = comment
         ))
     
-    def addCity(name,id,x,y):
+    def addCity(self,name,id,x,y):
         self.insert(sql_add_city.format(
             name = name,
             id = id,
@@ -70,7 +70,7 @@ class Query(Database):
             y = y
         ))
 
-    def getCities(name):
+    def getCities(self,name):
         return self.query(sql_get_cities.format(
             name = name
         ))
@@ -88,4 +88,21 @@ class Query(Database):
             name = name
         ))
         return [str(a[i][0]) for i in range(len(a))]
+
+    def getSolutionCities(self,name,runningtime):
+        a =  self.query(sql_get_solution_cities.format(
+            name = name,
+            runningtime = runningtime
+        ))
+        b = a[0][0].split(',')
+        return [int(i) for i in b]
+    
+    def getCity(self,name,_id):
+        a = self.query(sql_get_city.format(
+            name = name,
+            id = _id
+        ))
+
+        return a
+        
         

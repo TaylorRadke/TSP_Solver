@@ -3,6 +3,7 @@ from lib.queries import *
 import matplotlib.pyplot as plt
 from lib.db import Query
 from lib.reader import READER
+from time import time
 
 class PREFERENCES_DIALOG(wx.Dialog):
     def __init__(self,parent,reader):
@@ -13,7 +14,7 @@ class PREFERENCES_DIALOG(wx.Dialog):
             wx.Font(10,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_NORMAL))
 
         self.path = wx.TextCtrl(panel,pos=(5,30),size=(300,-1),value=reader.getPath())
-        self.confirm = wx.Button(panel, label="Select Folder",pos=(320,30))
+        self.confirm = wx.Button(panel, label="Browse",pos=(320,30))
         self.file = wx.DirDialog(self,defaultPath = self.reader.getPath())
 
         self.Bind(wx.EVT_BUTTON,self.editPath,self.confirm)
@@ -65,6 +66,7 @@ class TSP_GUI_LOGIC(TSP_GUI):
         self.Bind(wx.EVT_LISTBOX,self.selectProblem,self._problems_list_names)
         self.Bind(wx.EVT_LISTBOX,self.selectSolution,self._solutions_list_times)
         self.Bind(wx.EVT_MENU,self.editPath,self._file_path)
+        self.Bind(wx.EVT_BUTTON,self.loadSelected,self._load_button)
 
         self.initialise()
 
@@ -83,12 +85,13 @@ class TSP_GUI_LOGIC(TSP_GUI):
     def uploadProblem(self,event):
         problem = self._upload_problem_input.GetValue()
         a = self.reader.readIn(problem)
-        size = a[0]["size"]
-        comment = a[0]["comment"]
+
         nodes = a[1]
-        
-        self.db.addProblem(problem,size,comment)
-        self.setProblems()
+        for node in nodes:
+            self.db.addCity(name=problem,id=int(node[0]),x = float(node[1]),y= float(node[2]))
+        #self.db.addProblem(name = problem,size = a[0]["size"],comment = a[0]["comment"])
+        self.db.save()
+        #self.setProblems()
 
     def editPath(self,event):
         PREFERENCES_DIALOG(self,self.reader).Show()
@@ -96,3 +99,21 @@ class TSP_GUI_LOGIC(TSP_GUI):
     def selectSolution(self,event):
         self._loaded_time = int(self._solutions_list_times.GetString(self._solutions_list_times.GetSelection()))
         self._loaded_label.SetLabel(self._loaded_name + ", " + str(self._loaded_time) + " seconds")
+
+    def loadSelected(self,event):
+        if (self._loaded_name and not self._loaded_time):
+            #load problem
+            a = self.db.getCities(self._loaded_name)
+            print(a)
+
+        elif (self._loaded_name and self._loaded_time):
+            #load solution
+            start = time()
+            a = self.db.getSolutionCities(self._loaded_name,int(self._loaded_time))
+            print("done")
+            b = []
+            
+            for city in a:
+                b.append(self.db.getCity(self._loaded_name,city)[0])
+
+            print("Time taken = " + str(time()-start))

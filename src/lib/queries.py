@@ -45,3 +45,18 @@ sql_get_solution_times ="""
     FROM Solution
     WHERE ProblemName = '{name}';
     """
+
+sql_get_solution_cities = """
+    SELECT Tour
+    FROM Solution
+    WHERE ProblemName = '{name}'
+    AND RunningTime = {runningtime}
+    LIMIT 1;
+    """
+sql_get_city = """
+    SELECT ID,x,y
+    FROM Cities
+    WHERE Name = '{name}'
+    AND ID = {id}
+    LIMIT 1;
+    """
