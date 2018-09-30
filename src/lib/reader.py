@@ -1,20 +1,23 @@
 import re
-from sys import path
-import sys
+from os import path
+
 
 class READER(object):
-    def __init__(self,path):
-        self._tsp_path = path
+    def __init__(self):
+        with open("tsp_path.txt","r") as tsp:
+            self._tsp_path = tsp.readline()
 
     def getPath(self):
         return self._tsp_path
 
     def setPath(self,path):
         self._tsp_path = path
+        with open("tsp_path.txt","w")  as tsp:
+            tsp.write(self._tsp_path)
 
     def readIn(self,problem_name):
 
-        problem_file =  self._tsp_path + problem_name + '.tsp'
+        problem_file =  path.join(self._tsp_path, problem_name + '.tsp')
         problem_attrs = {"problem":problem_name,"size":None,"comment":None}
         try:
             tsp_nodes = open(problem_file,"r")

@@ -13,12 +13,14 @@ class PREFERENCES_DIALOG(wx.Dialog):
             wx.Font(10,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_NORMAL))
 
         self.path = wx.TextCtrl(panel,pos=(5,30),size=(300,-1),value=reader.getPath())
-        self.confirm = wx.Button(panel, label="Submit",pos=(320,30))
+        self.confirm = wx.Button(panel, label="Select Folder",pos=(320,30))
+        self.file = wx.DirDialog(self,defaultPath = self.reader.getPath())
 
         self.Bind(wx.EVT_BUTTON,self.editPath,self.confirm)
     
     def editPath(self,event):
-        self.reader.setPath(self.path.GetValue())
+        self.file.ShowModal()
+        self.reader.setPath(self.file.GetPath())
         self.path.SetValue(self.reader.getPath())
         
 class TSP_GUI(wx.Frame):
@@ -26,7 +28,7 @@ class TSP_GUI(wx.Frame):
         super(TSP_GUI,self).__init__(parent,title=title,size=(1024,600))
 
         self.db = Query()
-        self.reader = READER("F:\\1810ICT_SoftwareDevelopmentProcesses\\tsp_solver\\tsp_files\\")
+        self.reader = READER()
 
         self._panel = wx.Panel(self,id=wx.ID_ANY,size=(600,400))
         self._menubar = wx.MenuBar()
