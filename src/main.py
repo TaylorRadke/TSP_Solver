@@ -5,6 +5,7 @@ from lib.output import output
 from lib.queries import *
 from tsp_gui import TSP_GUI_LOGIC
 from lib.db import Query
+from lib.db import Query
 import wx
 
 if __name__ == "__main__": 

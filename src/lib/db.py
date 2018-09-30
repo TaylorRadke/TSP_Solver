@@ -47,7 +47,7 @@ class Query(Database):
     def __init__(self):
         super(Query,self).__init__()
 
-    def addSolution(name,length,runningTime,tour):
+    def addSolution(self,name,length,runningTime,tour):
         self.insert(sql_add_solution.format(
             name = name,
             length = length,
@@ -98,11 +98,10 @@ class Query(Database):
         return [int(i) for i in b]
     
     def getCity(self,name,_id):
-        a = self.query(sql_get_city.format(
+        return self.query(sql_get_city.format(
             name = name,
             id = _id
         ))
 
-        return a
         
         

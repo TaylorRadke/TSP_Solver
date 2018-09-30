@@ -3,6 +3,7 @@ from lib.queries import *
 import matplotlib.pyplot as plt
 from lib.db import Query
 from lib.reader import READER
+from lib.solver import solve
 
 class PREFERENCES_DIALOG(wx.Dialog):
     def __init__(self,parent,reader):
@@ -62,6 +63,8 @@ class TSP_GUI(wx.Frame):
         self._solve_input = wx.TextCtrl(self._panel,pos=(100,320),size=(75,-1))
         self._solve_submit = wx.Button(self._panel,label="Solve",pos=(185,320))
 
+        self._save_solved_button = wx.Button(self._panel,label="Save Solution",pos=(5,350))
+
     def initialise(self):
         self.Show(True)    
         
@@ -75,6 +78,8 @@ class TSP_GUI_LOGIC(TSP_GUI):
         self.Bind(wx.EVT_LISTBOX,self.selectSolution,self._solutions_list_times)
         self.Bind(wx.EVT_MENU,self.editPath,self._file_path)
         self.Bind(wx.EVT_BUTTON,self.loadSelected,self._load_button)
+        self.Bind(wx.EVT_BUTTON, self.solveLoaded, self._solve_submit)
+        self.Bind(wx.EVT_BUTTON,self.saveSolved,self._save_solved_button)
 
         self.initialise()
 
@@ -126,3 +131,18 @@ class TSP_GUI_LOGIC(TSP_GUI):
             self._solve_problem.SetLabel(self._loaded_name + "," + str(self._loaded_time) + " secs")
 
         self._loaded_label.SetLabel("")
+    
+    def solveLoaded(self,event):
+        if self._loaded_tour:  
+            self._solve_time = int(self._solve_input.GetValue())
+            a = solve(self._loaded_tour,self._solve_time)
+            self._solution_tour_length = a[0]
+            self._solution_tour_str = a[1]
+            self._solution_tour = a[2]
+            
+
+    def saveSolved(self,event):
+        if self._solution_tour:
+            self.db.addSolution(self._loaded_name,self._solution_tour_length,self._solve_time,self._solution_tour_str)
+            self.db.save()
+            self.setSolutionTimes(self._loaded_name)

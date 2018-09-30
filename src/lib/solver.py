@@ -60,9 +60,7 @@ def transpose(tour,i,k):
     return new_tour
 
 
-def solve(problem_name,allowed_time,db):
-    tour = db.query(sql_get_cities.format(name = problem_name))
-    allowed_time = 1
+def solve(tour,allowed_time):
     
     tour = greedy(tour)
 
@@ -98,11 +96,4 @@ def solve(problem_name,allowed_time,db):
     for node in tour[:-1]:
         tourStr += str(node[0]) + ","
     tourStr = tourStr[:-1]
-
-    db.insert(sql_add_solution.format(
-        name = problem_name,
-        length = tour_distance(tour),
-        runningtime = allowed_time,
-        tour = tourStr
-    ))
-    db.save()
+    return tour_distance(tour),tourStr,tour
