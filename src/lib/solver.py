@@ -3,7 +3,6 @@ import sys
 sys.path.append("..")
 from time import time
 from lib.queries import *
-import mysql.connector.errors
 
 def euclidean_distance(node1, node2):
     """Finds the euclidean distance between two nodes"""

@@ -1,3 +1,6 @@
+import sys
+sys.path.append('..')
+from lib.queries import *
 try:
     import mysql.connector
     import mysql.connector.errors
@@ -39,3 +42,50 @@ class Database(object):
     
     def close(self):
         self.connection.close()
+
+class Query(Database):
+    def __init__(self):
+        super(Query,self).__init__()
+
+    def addSolution(name,length,runningTime,tour):
+        self.insert(sql_add_solution.format(
+            name = name,
+            length = length,
+            runningtime = runningTime,
+            tour = tour
+        ))
+    
+    def addProblem(self,name,size,comment):
+        self.insert(sql_add_problem.format(
+            name = name,
+            size = size,
+            comment = comment
+        ))
+    
+    def addCity(name,id,x,y):
+        self.insert(sql_add_city.format(
+            name = name,
+            id = id,
+            x = x,
+            y = y
+        ))
+
+    def getCities(name):
+        return self.query(sql_get_cities.format(
+            name = name
+        ))
+
+    def getProblems(self):
+        a = self.query(sql_get_problems)
+        return [a[i][0] for i in range(len(a))]
+        
+    def getSolutionNames(self):
+        a = self.query(sql_get_solutions)
+        return [a[i][0] for i in range(len(a))]
+    
+    def getSolutionTimes(self,name):
+        a = self.query(sql_get_solution_times.format(
+            name = name
+        ))
+        return [str(a[i][0]) for i in range(len(a))]
+        

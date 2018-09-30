@@ -10,7 +10,7 @@ sql_get_cities = """
     WHERE Name = '{name}';
     """ 
 
-sql_add_cities = """
+sql_add_city = """
     INSERT INTO Cities (Name,ID,x,y)
     Values
     ('{name}',{id},{x},{y});
@@ -30,7 +30,18 @@ sql_add_problem = """
     ('{name}',{size},'{comment}'); 
     """
 
-sql_get_problem ="""
-    SELECT * FROM Problem
-    WHERE Name = '{name}';
+sql_get_problems ="""
+    SELECT *
+    FROM Problem
+    """
+
+sql_get_solutions ="""
+    SELECT ProblemName
+    FROM Solution
+    LIMIT 1;
+    """
+sql_get_solution_times ="""
+    SELECT RunningTime
+    FROM Solution
+    WHERE ProblemName = '{name}';
     """

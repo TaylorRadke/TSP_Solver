@@ -1,49 +1,43 @@
 import re
+from sys import path
 import sys
-sys.path.append("..")
-from lib.queries import *
+
+class READER(object):
+    def __init__(self,path):
+        self._tsp_path = path
 
 
-def reader(problem_file,problem_name,db):
+    def readIn(self,problem_name):
 
-    #  Check if problem file exists
-    try:
-        tsp_nodes = open(problem_file,"r")
-    except FileNotFoundError as e:
-        raise e
+        problem_file =  self._tsp_path + problem_name + '.tsp'
+        problem_attrs = {"problem":problem_name,"size":None,"comment":None}
+        try:
+            tsp_nodes = open(problem_file,"r")
+        except FileNotFoundError as e:
+            raise e
 
-    current_line = 1
-    for line in tsp_nodes.readlines():
-        a = re.match("(\w+)\s*:*\s*([\w]*)",line)
-        attr_label = a.group(1)
-        attr_value = a.group(2)
-        current_line += 1
+        nodes_start_line = 1
 
-        if attr_label == "NODE_COORD_SECTION":
-            break
-        elif attr_label == "DIMENSION":
-            dimension = int(attr_value) 
-        elif attr_label == "COMMENT":
-            comment = attr_value
+        for line in tsp_nodes.readlines():
+            a = re.match("(\w+)\s*:*\s*([\w]*)",line)
+            attr_label = a.group(1)
+            attr_value = a.group(2)
+            nodes_start_line += 1
 
-    tsp_nodes.close()
+            if attr_label == "NODE_COORD_SECTION":
+                break
+            elif attr_label == "DIMENSION":
+                problem_attrs["size"] = int(attr_value) 
+            elif attr_label == "COMMENT":
+                problem_attrs["comment"] = attr_value
+        tsp_nodes.close()
 
+        with open(problem_file,"r") as tsp_nodes:
+            nodes = []
+            for node in tsp_nodes.readlines()[nodes_start_line-1:-1]:
+                node_list = list(filter(None,node.strip().replace("\n","").split(" ")))
 
-    with open(problem_file,"r") as tsp_nodes:
-        count = 0
-        db.query(sql_add_problem.format(
-            name = problem_name,
-            size = dimension,
-            comment = comment))
+                nodes.append((node_list[0],node_list[1], node_list[2]))
 
-        for node in tsp_nodes.readlines()[current_line-1:-1]:
-            node_list = list(filter(None,node.strip().replace("\n","").split(" ")))
-            print("Adding nodes for " + problem_name + ": {}/{}".format(count,dimension),end="\r",flush=True)
-            count += 1
-            node = node_list[0]
-            x = node_list[1]
-            y = node_list[2] 
-            db.query(sql_add_cities.format(name = problem_name,id = node,x = x,y = y))
-
-        db.save()      
+        return  problem_attrs,nodes
 
