@@ -6,6 +6,11 @@ class READER(object):
     def __init__(self,path):
         self._tsp_path = path
 
+    def getPath(self):
+        return self._tsp_path
+
+    def setPath(self,path):
+        self._tsp_path = path
 
     def readIn(self,problem_name):
 
