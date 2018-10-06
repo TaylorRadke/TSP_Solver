@@ -1,8 +1,10 @@
 use s5094922db;
---
+Drop TABLE Problem;
+Drop TABLE Cities;
+Drop TABLE Solution;
 -- Table structure for table 'Problem'
 --
-CREATE TABLE IF NOT EXISTS Problem (
+CREATE TABLE Problem (
   Name varchar(32) NOT NULL,
   Size int(11) NOT NULL,
   Comment varchar(255) DEFAULT NULL,
@@ -12,7 +14,7 @@ CREATE TABLE IF NOT EXISTS Problem (
 --
 -- Table structure for table 'Cities'
 --
-CREATE TABLE IF NOT EXISTS Cities (
+CREATE TABLE Cities (
   Name varchar(32) NOT NULL,
   ID int(11) NOT NULL,
   x double NOT NULL,
@@ -24,7 +26,7 @@ CREATE TABLE IF NOT EXISTS Cities (
 --
 -- Table structure for table 'Solution'
 --
-CREATE TABLE IF NOT EXISTS Solution (
+CREATE TABLE  Solution (
   SolutionID int(11) NOT NULL AUTO_INCREMENT,
   ProblemName varchar(32) NOT NULL,
   TourLength double NOT NULL,

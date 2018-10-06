@@ -4,7 +4,58 @@ from lib.db import Query
 from lib.reader import READER
 from lib.solver import solve
 from lib.plot import TSP_PLOT
-import asyncio
+from threading import Thread
+
+from wx.lib.pubsub import pub as Publisher
+
+class UploadThread(Thread):
+    def __init__(self,tour,problem,attrs,gui):
+        """Init Worker Thread Class."""
+        Thread.__init__(self)
+        self.attrs = attrs
+        self.gui = gui
+        self.problem = problem
+        self.db = Query()
+        self.tour = tour
+        self.start()    # start the thread
+    #-------------- --------------------------------------------------------
+    def run(self):
+        """Run Worker Thread."""
+        # This is the code executing in the new thread.
+        self.db.addProblem(name = self.problem,size =  self.attrs["size"],comment = self.attrs["comment"])
+        for node in self.tour:
+                self.db.addCities(self.problem,node[0],node[1],node[2])
+                wx.CallAfter(Publisher.sendMessage, "update",msg="")
+        self.db.save()
+        self.gui._problems_list_names.Set(self.db.getProblems())
+        self.db.close()
+
+class ProgressDialog(wx.Dialog):
+    def __init__(self,range):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, title="Upload Progress")
+        self.count = 0
+        self.range = range
+        self.progress = wx.Gauge(self, range=self.range)
+ 
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.progress, 0, wx.EXPAND)
+        self.SetSizer(sizer)
+ 
+        # create a pubsub listener
+        Publisher.subscribe(self.updateProgress, "update")
+ 
+    #----------------------------------------------------------------------
+    def updateProgress(self, msg):
+        """
+        Update the progress bar
+        """
+        self.count += 1
+        print(self.count,flush=True,end="\r")
+        if self.count >= self.range:
+            self.Destroy()
+ 
+        self.progress.SetValue(self.count)
 
 class PREFERENCES_DIALOG(wx.Dialog):
     def __init__(self,parent,reader):
@@ -28,11 +79,25 @@ class PREFERENCES_DIALOG(wx.Dialog):
         
 class TSP_GUI(wx.Frame):
     def __init__(self,parent,title):
-        super(TSP_GUI,self).__init__(parent,title=title,size=(1024,600))
-        self._panel = wx.Panel(self,id=wx.ID_ANY,size=(600,400))
+        super(TSP_GUI,self).__init__(parent,title=title,size=(600,600))
+
+        self._framePanel = wx.Panel(self,size=(600,600),style=wx.EXPAND)
+        self._uploadPanel = wx.Panel(self._framePanel)
+        self._loadPanel = wx.Panel(self._framePanel)
+        self._solvePanel = wx.Panel(self._framePanel)
+        self._plotPanel = wx.Panel(self._framePanel)
+
         self.db = Query()
         self.reader = READER()
-        self.plotter = TSP_PLOT(self._panel)
+        self.plotter = TSP_PLOT(self._plotPanel)
+        self.sizer = wx.GridBagSizer(5,0)
+       
+        self.SetSizer(self.sizer)
+
+        self.sizer.Add(self._uploadPanel,pos=(0,0))
+        self.sizer.Add(self._loadPanel,pos=(1,0),span=(1,1))
+        self.sizer.Add(self._solvePanel,pos=(3,0))
+        self.sizer.Add(self._plotPanel,pos=(0,1),span=(3,3))
 
         #Preferences Tab
         self._menubar = wx.MenuBar()
@@ -41,29 +106,46 @@ class TSP_GUI(wx.Frame):
         self._menubar.Append(self._menu,"File")
         self.SetMenuBar(self._menubar)
 
-        self._font = wx.Font(12,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_NORMAL)
+        # Upload Options
+        self._uploadLabel = wx.StaticText(self._uploadPanel,label="Upload Problem")
+        self._upload_problem_input = wx.TextCtrl(self._uploadPanel)
+        self._upload_problem_submit = wx.Button(self._uploadPanel,label="Submit")
 
-        self._uploadLabel = wx.StaticText(self._panel,label="Upload Problem",pos=(5,20))
-        self._upload_problem_input = wx.TextCtrl(self._panel,pos=(5,50))
-        self._upload_problem_submit = wx.Button(self._panel,label="Submit",pos=(125,50))
+        #Upload Sizer
+        self.uploadSizer = wx.GridBagSizer(0,0)
+        self.uploadSizer.Add(self._uploadLabel,pos=(0,0),span=(1,2))
+        self.uploadSizer.Add(self._upload_problem_input,pos=(1,0),span=(1,2))
+        self.uploadSizer.Add(self._upload_problem_submit,pos=(1,3))
+        self._uploadPanel.SetSizer(self.uploadSizer)
 
-        self._problems_label = wx.StaticText(self._panel,label="Problems",pos=(5,100))
-        self._problems_list_names = wx.ListBox(self._panel, pos=(5,125),size=(90,100),style=wx.LB_SINGLE)
+        #Load Options
+        self._problems_label = wx.StaticText(self._loadPanel,label="Problems")
+        self._problems_list_names = wx.ListBox(self._loadPanel,style=wx.LB_SINGLE)
+        self._solution_label_times = wx.StaticText(self._loadPanel,label="Solutions")
+        self._solutions_list_times = wx.ListBox(self._loadPanel)
+        self._loaded_label = wx.StaticText(self._loadPanel,label="")
+        self._load_button = wx.Button(self._loadPanel,label="Load")
 
-        self._solution_label_times = wx.StaticText(self._panel,label="Solutions",pos=(125,100))
-        self._solutions_list_times = wx.ListBox(self._panel,pos=(125,125),size=(100,100))
+        #Load Sizer
+        self.loadSizer = wx.GridBagSizer(0,10)
+        self.loadSizer.Add(self._problems_label,pos=(0,0))
+        self.loadSizer.Add(self._solution_label_times,pos=(0,1))
+        self.loadSizer.Add(self._problems_list_names,pos=(1,0))
+        self.loadSizer.Add(self._solutions_list_times,pos=(1,1))
+        self.loadSizer.Add(self._loaded_label,pos=(3,0))
+        self.loadSizer.Add(self._load_button,pos=(4,1))
+        self._loadPanel.SetSizer(self.loadSizer)
 
-        self._loaded_label = wx.StaticText(self._panel,label="",pos=(5,255))
-        self._load_button = wx.Button(self._panel,label="Load",pos=(125,250))
-        
-        self._solve_problem = wx.StaticText(self._panel,pos=(7,322))
+        self._solve_problem = wx.StaticText(self._solvePanel)
 
-        self._solve_time_label = wx.StaticText(self._panel,label="Time",pos=(130,300))
-        self._solve_input = wx.TextCtrl(self._panel,pos=(130,320),size=(75,-1))
-        self._solve_submit = wx.Button(self._panel,label="Solve",pos=(215,320))
-        self._save_solved_button = wx.Button(self._panel,label="Save Solution",pos=(5,350))
+        self._solve_time_label = wx.StaticText(self._solvePanel,label="Time")
+        self._solve_input = wx.TextCtrl(self._solvePanel)
+        self._solve_submit = wx.Button(self._solvePanel,label="Solve")
+        self._save_solved_button = wx.Button(self._solvePanel,label="Save Solution")
 
         #Set Label Fonts
+        self._font = wx.Font(12,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_NORMAL)
+
         self._uploadLabel.SetFont(self._font)
         self._problems_label.SetFont(self._font)
         self._solution_label_times.SetFont(self._font)
@@ -72,7 +154,7 @@ class TSP_GUI(wx.Frame):
         self._solve_problem.SetFont(wx.Font(11,wx.FONTFAMILY_DEFAULT,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_NORMAL))
 
         #Hide widgets
-        self._load_button.Hide()
+        
         self._solve_time_label.Hide()
         self._solve_input.Hide()
         self._solve_submit.Hide()
@@ -87,7 +169,7 @@ class TSP_GUI_LOGIC(TSP_GUI):
     def __init__(self,parent,title):
         super(TSP_GUI_LOGIC,self).__init__(parent,title)
         self.setProblems()
-
+        
         self.Bind(wx.EVT_BUTTON,self.uploadProblem,self._upload_problem_submit)
         self.Bind(wx.EVT_LISTBOX,self.selectProblem,self._problems_list_names)
         self.Bind(wx.EVT_LISTBOX,self.selectSolution,self._solutions_list_times)
@@ -117,10 +199,12 @@ class TSP_GUI_LOGIC(TSP_GUI):
         problem = self._upload_problem_input.GetValue()
         a = self.reader.readIn(problem)
         if (a is not None):
-            #self.db.addProblem(name = problem,size = a[0]["size"],comment = a[0]["comment"])
-            self.db.addCities()
-            self.db.save()
+            self.size = a[0]["size"]
+            
+            UploadThread(a[1],problem,a[0],self)
+            ProgressDialog(self.size).ShowModal()
             self.setProblems()
+
 
     def editPath(self,event):
         PREFERENCES_DIALOG(self,self.reader).Show()
@@ -139,7 +223,7 @@ class TSP_GUI_LOGIC(TSP_GUI):
             self._loaded_tour = self.db.getCities(self._loaded_name)
             self._solve_problem.SetLabel(self._loaded_name)
     
-            self.plotter.updatePlot(self.getx(),self.gety())
+            self.plotter.updatePlot(self.getx(self._loaded_tour),self.gety(self._loaded_tour))
 
         elif (self._loaded_name and self._loaded_time):
 
@@ -154,7 +238,7 @@ class TSP_GUI_LOGIC(TSP_GUI):
                         c.append(b[j])
 
             self._loaded_tour = c
-            self.plotter.updatePlot(self.getx(),self.gety())
+            self.plotter.updatePlot(self.getx(self._loaded_tour),self.gety(self._loaded_tour))
             self._solve_problem.SetLabel(self._loaded_name + ", " + str(self._loaded_time) + " secs")
 
         self._load_button.Hide()
@@ -164,24 +248,27 @@ class TSP_GUI_LOGIC(TSP_GUI):
         self._solve_submit.Show()
         self._solve_time_label.Show()
     
-    def getx(self):
-        a = [a[1] for a in self._loaded_tour]
+    def getx(self,tour):
+        a = [a[1] for a in tour]
         a.append(a[0])
         return a
 
-    def gety(self):
-        a = [a[2] for a in self._loaded_tour]
+    def gety(self,tour):
+        a = [a[2] for a in tour]
         a.append(a[0])
         return a
 
     def solveLoaded(self,event):
-        if self._loaded_tour: 
+        if self._loaded_tour:
+            self._solve_submit.Hide()
             self._solve_time = int(self._solve_input.GetValue())
             a = solve(self._loaded_tour,self._solve_time)
             self._solution_tour_length = a[0]
             self._solution_tour_str = a[1]
             self._solution_tour = a[2]
+            self.plotter.updatePlot(self.getx(self._solution_tour),self.gety(self._solution_tour))
             self._save_solved_button.Show()
+            self._solve_submit.Show()
             
 
     def saveSolved(self,event):

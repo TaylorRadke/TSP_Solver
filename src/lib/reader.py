@@ -34,7 +34,7 @@ class READER(object):
                     elif attr_label == "DIMENSION":
                         problem_attrs["size"] = int(attr_value) 
                     elif attr_label == "COMMENT":
-                        problem_attrs["comment"] += line.split(":")[1].lstrip().replace("\n","")
+                        problem_attrs["comment"] += line.split(":")[1].lstrip().replace("\n"," ")
 
             with open(problem_file,"r") as tsp_nodes:
                 print(problem_attrs["comment"])
@@ -43,7 +43,6 @@ class READER(object):
                     node_list = list(filter(None,node.strip().replace("\n","").split(" ")))
 
                     nodes.append((int(node_list[0]),float(node_list[1]), float(node_list[2])))
-
             return  problem_attrs,nodes
         except FileNotFoundError as e:
             print(e.filename + " could not be found.")

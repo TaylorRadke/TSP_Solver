@@ -29,14 +29,14 @@ class Database(object):
         try:
             self.cursor.execute(query)
             return self.cursor.fetchall()
-        except:
-            print("Error querying database")
+        except mysql.connector.errors.Error as e:
+            print(e.msg)
 
     def insert(self,query):
         try:
             self.cursor.execute(query)
-        except:
-            print("Error inserting into database")
+        except mysql.connector.errors.IntegrityError as e:
+            print(e.msg)
 
     def save(self):
         self.connection.commit()
@@ -63,14 +63,14 @@ class Query(Database):
             comment = comment
         ))
     
-    def addCities(self,name,tour):
-        for node in tour:
-            self.insert(sql_add_city.format(
-                name = name,
-                id = node[0], 
-                x = node[1],
-                y = node[2]
-            ))
+    def addCities(self,name,_id,x,y):
+        
+        self.insert(sql_add_city.format(
+            name = name,
+            id = _id, 
+            x = x,
+            y = y
+        ))
 
     def getCities(self,name):
         return self.query(sql_get_cities.format(
