@@ -10,7 +10,7 @@ sql_get_cities = """
     WHERE Name = '{name}';
     """ 
 
-sql_add_city = """
+sql_add_cities = """
     INSERT INTO Cities (Name,ID,x,y)
     Values
     ('{name}',{id},{x},{y});

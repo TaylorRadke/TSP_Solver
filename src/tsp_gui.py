@@ -4,6 +4,7 @@ from lib.db import Query
 from lib.reader import READER
 from lib.solver import solve
 from lib.plot import TSP_PLOT
+import asyncio
 
 class PREFERENCES_DIALOG(wx.Dialog):
     def __init__(self,parent,reader):
@@ -115,14 +116,11 @@ class TSP_GUI_LOGIC(TSP_GUI):
     def uploadProblem(self,event):
         problem = self._upload_problem_input.GetValue()
         a = self.reader.readIn(problem)
-        self.db.addProblem(name = problem,size = a[0]["size"],comment = a[0]["comment"])
-
-        nodes = a[1]
-        for node in nodes:
-            self.db.addCity(name=problem,id=int(node[0]),x = float(node[1]),y= float(node[2]))
-        
-        self.db.save()
-        self.setProblems()
+        if (a is not None):
+            #self.db.addProblem(name = problem,size = a[0]["size"],comment = a[0]["comment"])
+            self.db.addCities()
+            self.db.save()
+            self.setProblems()
 
     def editPath(self,event):
         PREFERENCES_DIALOG(self,self.reader).Show()
@@ -141,7 +139,7 @@ class TSP_GUI_LOGIC(TSP_GUI):
             self._loaded_tour = self.db.getCities(self._loaded_name)
             self._solve_problem.SetLabel(self._loaded_name)
     
-            self.plotter.updatePlot(self.getx(self._loaded_tour),self.gety(self._loaded_tour))
+            self.plotter.updatePlot(self.getx(),self.gety())
 
         elif (self._loaded_name and self._loaded_time):
 
@@ -177,7 +175,7 @@ class TSP_GUI_LOGIC(TSP_GUI):
         return a
 
     def solveLoaded(self,event):
-        if self._loaded_tour:  
+        if self._loaded_tour: 
             self._solve_time = int(self._solve_input.GetValue())
             a = solve(self._loaded_tour,self._solve_time)
             self._solution_tour_length = a[0]

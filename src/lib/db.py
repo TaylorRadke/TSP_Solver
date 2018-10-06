@@ -21,21 +21,22 @@ class Database(object):
                 password="hib9bkip",
                 database="s5094922db"
             )
-        except:
-            print("Failed to connect to the database")
+        except mysql.connector.errors.InterfaceError as e:
+            print(e.msg)
+            sys.exit(1)
     
     def query(self,query):
         try:
             self.cursor.execute(query)
             return self.cursor.fetchall()
-        except mysql.connector.Error as e:
-            raise e
+        except:
+            print("Error querying database")
 
     def insert(self,query):
         try:
             self.cursor.execute(query)
-        except mysql.connector.Error as e:
-            raise e
+        except:
+            print("Error inserting into database")
 
     def save(self):
         self.connection.commit()
@@ -62,13 +63,14 @@ class Query(Database):
             comment = comment
         ))
     
-    def addCity(self,name,id,x,y):
-        self.insert(sql_add_city.format(
-            name = name,
-            id = id,
-            x = x,
-            y = y
-        ))
+    def addCities(self,name,tour):
+        for node in tour:
+            self.insert(sql_add_city.format(
+                name = name,
+                id = node[0], 
+                x = node[1],
+                y = node[2]
+            ))
 
     def getCities(self,name):
         return self.query(sql_get_cities.format(
