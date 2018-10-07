@@ -16,12 +16,11 @@ sql_add_city = """
     ('{name}',{id},{x},{y});
     """
 
-sql_get_solution = """
-    SELECT TourLength,Tour
+sql_get_tour_length = """
+    SELECT TourLength
     FROM Solution
     WHERE ProblemName = '{name}'
-    AND RunningTime = {runningtime}
-    Limit 1;
+    LIMIT 1;
     """
 
 sql_add_problem = """

@@ -37,6 +37,7 @@ class Database(object):
             self.cursor.execute(query)
         except mysql.connector.errors.IntegrityError as e:
             print(e.msg)
+            
 
     def save(self):
         self.connection.commit()
@@ -57,6 +58,7 @@ class Query(Database):
         ))
     
     def addProblem(self,name,size,comment):
+        
         self.insert(sql_add_problem.format(
             name = name,
             size = size,
@@ -64,7 +66,6 @@ class Query(Database):
         ))
     
     def addCities(self,name,_id,x,y):
-        
         self.insert(sql_add_city.format(
             name = name,
             id = _id, 
@@ -104,6 +105,9 @@ class Query(Database):
             name = name,
             id = _id
         ))
+    
+    def getTourLength(self,name):
+        return self.query(sql_get_tour_length.format(name=name))[0][0]
 
         
         
