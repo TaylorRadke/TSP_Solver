@@ -4,8 +4,13 @@ from os import path
 
 class READER(object):
     def __init__(self):
-        with open("tsp_path.txt","r") as tsp:
-            self._tsp_path = tsp.readline()
+        try:
+            with open("tsp_path.txt","r") as tsp:
+                self._tsp_path = tsp.readline()
+        except FileNotFoundError:
+            with open("tsp_path.txt","w") as tsp:
+                self._tsp_path = path.abspath("C:\\")
+                tsp.write(self._tsp_path)
 
     def getPath(self):
         return self._tsp_path
@@ -37,7 +42,6 @@ class READER(object):
                         problem_attrs["comment"] += line.split(":")[1].lstrip().replace("\n"," ")
 
             with open(problem_file,"r") as tsp_nodes:
-                print(problem_attrs["comment"])
                 nodes = []
                 for node in tsp_nodes.readlines()[nodes_start_line-1:-1]:
                     node_list = list(filter(None,node.strip().replace("\n","").split(" ")))
@@ -45,5 +49,5 @@ class READER(object):
                     nodes.append((int(node_list[0]),float(node_list[1]), float(node_list[2])))
             return  problem_attrs,nodes
         except FileNotFoundError as e:
-            print(e.filename + " could not be found.")
+            raise e
 

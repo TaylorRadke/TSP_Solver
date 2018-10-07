@@ -19,7 +19,7 @@ class Database(object):
                 host="mysql.ict.griffith.edu.au",
                 user="s5094922",
                 password="hib9bkip",
-                database="s5094922db"
+                database="1810ICTdb"
             )
         except mysql.connector.errors.InterfaceError as e:
             print(e.msg)
@@ -97,8 +97,9 @@ class Query(Database):
             name = name,
             runningtime = runningtime
         ))
-        b = a[0][0].split(',')
-        return [int(i) for i in b]
+        b = a[0][0].split(' ')
+        
+        return [int(i) for i in b[:-1]]
     
     def getCity(self,name,_id):
         return self.query(sql_get_city.format(

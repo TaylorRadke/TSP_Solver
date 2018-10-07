@@ -1,12 +1,16 @@
 import wx
+from wx.lib.pubsub import pub as Publisher
+from time import time
+import sys
+sys.path.append("..")
 from lib.queries import *
 from lib.db import Query
 from lib.reader import READER
 from lib.solver import solve
 from lib.plot import TSP_PLOT
 from threading import Thread
-from time import time
-from wx.lib.pubsub import pub as Publisher
+
+
 
 class UploadThread(Thread):
     def __init__(self,tour,problem,attrs,gui):
@@ -42,20 +46,24 @@ class SolveThread(Thread):
 
     def run(self):
         """Run Worker Thread."""
-        
         self.gui._save_solved_button.Disable()
-        a = solve(self.tour,self.allowed_time)
+        a = solve(self.tour,self.allowed_time,self.gui)
         self.gui._solution_tour_length = a[0]
         self.gui._solution_tour_str = a[1]
         self.gui._solution_tour = a[2]
         self.gui._save_solved_button.Enable()
         if (self.gui._loaded_time):
-            self.gui.plotter.updatePlot(self.gui._loaded_name+"_"+str(self.gui._loaded_time)+", in "+str(self.gui._solve_time)+" seconds. Tour Length: {0:.0f}"
+            try:
+                self.gui.plotter.updatePlot(self.gui._loaded_name+"_"+str(self.gui._loaded_time)+", in "+str(self.gui._solve_time)+" seconds. Tour Length: {0:.0f}"
                 .format(self.gui._solution_tour_length),a[2])
+            except IndexError:
+                ErrorDialog(self,"Error loading selected problem from database.").ShowModal()
         else:
-            self.gui.plotter.updatePlot(self.gui._loaded_name+", in "+str(self.gui._solve_time)+" seconds. Tour Length: {0:.0f}"
-            .format(self.gui._solution_tour_length),a[2])
-    
+            try:
+                self.gui.plotter.updatePlot(self.gui._loaded_name+" in "+str(self.gui._solve_time)+" seconds. Tour Length: {0:.0f}"
+                .format(self.gui._solution_tour_length),a[2])
+            except IndexError:
+                ErrorDialog(self,"Error loading selected problem from database.").ShowModal()
 
 class ProgressDialog(wx.Dialog):
     def __init__(self,range,problem):
@@ -84,6 +92,10 @@ class ProgressDialog(wx.Dialog):
  
         self.progress.SetValue(self.count)
 
+class ErrorDialog(wx.MessageDialog):
+    def __init__(self,parent,error):
+        super(ErrorDialog,self).__init__(parent,message=error,style=wx.ICON_ERROR)
+
 class PREFERENCES_DIALOG(wx.Dialog):
     def __init__(self,parent,reader):
         super(PREFERENCES_DIALOG,self).__init__(parent,title="Preferences",size=(450,200))
@@ -106,7 +118,7 @@ class PREFERENCES_DIALOG(wx.Dialog):
         
 class TSP_GUI(wx.Frame):
     def __init__(self,parent,title):
-        super(TSP_GUI,self).__init__(parent,title=title,size=(1060,560))
+        super(TSP_GUI,self).__init__(parent,title=title)
         self._framePanel = wx.Panel(self,style=wx.EXPAND)
         self._uploadPanel = wx.Panel(self._framePanel)
         self._loadPanel = wx.Panel(self._framePanel)
@@ -124,7 +136,6 @@ class TSP_GUI(wx.Frame):
         self.sizer.Add(self._loadPanel,pos=(1,0))
         self.sizer.Add(self._solvePanel,pos=(4,0))
         self.sizer.Add(self._plotPanel,pos=(0,1),span=(3,1))
-
         #Preferences Tab
         self._menubar = wx.MenuBar()
         self._menu = wx.Menu()
@@ -191,10 +202,12 @@ class TSP_GUI(wx.Frame):
         self._solve_submit.Disable()
         self._load_button.Disable()
         self._save_solved_button.Disable()
-
-
+      
 
     def initialise(self):
+        self.Layout()
+        self.Refresh()
+        self.Update()
         self.Show(True)    
         
 class TSP_GUI_LOGIC(TSP_GUI):
@@ -213,6 +226,7 @@ class TSP_GUI_LOGIC(TSP_GUI):
         self.Bind(wx.EVT_BUTTON,self.saveSolved,self._save_solved_button)
 
         self.initialise()
+        self.UpdateWindowUI()
 
     def selectProblem(self,event):
         self._loaded_name = self._problems_list_names.GetString(self._problems_list_names.GetSelection())
@@ -230,13 +244,17 @@ class TSP_GUI_LOGIC(TSP_GUI):
     def uploadProblem(self,event):
         problem = self._upload_problem_input.GetValue()
         if (problem not in self.db.getProblems()):
-            a = self.reader.readIn(problem)
-            if a:
-                self.size = a[0]["size"]
-                
-                UploadThread(a[1],problem,a[0],self)
-                ProgressDialog(self.size,problem).ShowModal()
-
+            try:
+                a = self.reader.readIn(problem)
+                if a:
+                    self.size = a[0]["size"]
+                    
+                    UploadThread(a[1],problem,a[0],self)
+                    ProgressDialog(self.size,problem).ShowModal()
+            except FileNotFoundError as e:
+                ErrorDialog(self,e.strerror+ " " + e.filename).ShowModal()
+        else:
+            ErrorDialog(self,problem + " already exists in the database.").ShowModal()
 
     def editPath(self,event):
         PREFERENCES_DIALOG(self,self.reader).Show()
@@ -251,7 +269,11 @@ class TSP_GUI_LOGIC(TSP_GUI):
 
             self._loaded_tour = self.db.getCities(self._loaded_name)
             self._solve_problem.SetLabel(self._loaded_name)
-            self.plotter.updatePlot(self._loaded_name,self._loaded_tour)
+            try:
+                self.plotter.updatePlot(self._loaded_name,self._loaded_tour)
+            except IndexError:
+                ErrorDialog(self,"Error loading selected problem from database.").ShowModal()
+
         elif (self._loaded_name and self._loaded_time):
             #load solution
             a = self.db.getSolutionCities(self._loaded_name,int(self._loaded_time))
@@ -267,8 +289,10 @@ class TSP_GUI_LOGIC(TSP_GUI):
             self._loaded_tour = c
             
             self._solve_problem.SetLabel(self._loaded_name + ", " + str(self._loaded_time) + " secs")
-            self.plotter.updatePlot(self._loaded_name+" in "+str(self._loaded_time)+" seconds. Tour Length: {0:.0f}".format(length),self._loaded_tour)
-        
+            try:
+                self.plotter.updatePlot(self._loaded_name+" in "+str(self._loaded_time)+" seconds. Tour Length: {0:.0f}".format(length),self._loaded_tour)
+            except IndexError:
+                ErrorDialog(self,"Error loading selected problem from database.").ShowModal()
         self._solve_input.Enable()
         self._solve_submit.Enable()
         self._solve_time_label.Show()

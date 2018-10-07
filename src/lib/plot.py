@@ -22,10 +22,13 @@ class TSP_PLOT(wx.Panel):
         self.navbar.Realize()
 
     def updatePlot(self,name,tour):
-        self.axes.clear()
-        self.axes.set_title(name)
-        self.axes.plot(self.getx(tour),self.gety(tour))
-        self.canvas.draw()
+        try:
+            self.axes.clear()
+            self.axes.set_title(name)
+            self.axes.plot(self.getx(tour),self.gety(tour))
+            self.canvas.draw()
+        except IndexError:
+            raise IndexError
     
     def getx(self,tour):
         a = [a[1] for a in tour]

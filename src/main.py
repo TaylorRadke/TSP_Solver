@@ -1,4 +1,4 @@
-from tsp_gui import TSP_GUI_LOGIC
+from lib.tsp_gui import TSP_GUI_LOGIC
 import wx
 from lib.db import Database
 

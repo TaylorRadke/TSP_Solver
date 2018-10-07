@@ -60,7 +60,7 @@ def transpose(tour,i,k):
     return new_tour
 
 
-def solve(tour,allowed_time):
+def solve(tour,allowed_time,gui):
     
     tour = greedy(tour)
 
@@ -94,6 +94,7 @@ def solve(tour,allowed_time):
 
     tourStr = ""
     for node in tour[:-1]:
-        tourStr += str(node[0]) + ","
+        tourStr += str(node[0]) + " "
     tourStr = tourStr[:-1]
+    tourStr += " -1"
     return tour_distance(tour),tourStr,tour
